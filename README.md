@@ -10,12 +10,18 @@ This repository contains implementations of the algorithm described in Chapra & 
 > Numerical methods are techniques by which mathematical problems are formulated so that they can be solved with arithmetic operations. Although there are many kinds of numerical methods, they have one common characteristic: they invariably involve large numbers of tedious arithmetic calculations. It is little wonder that with the development of fast, effi cient digital computers, the role of numerical methods in engineering problem solving has increased dramatically in recent years. - [_Chapra & Canale (2015)_](https://www.worldcat.org/nl/title/numerical-methods-for-engineers/oclc/897417371?referer=di&ht=edition)
 
 ## Compiling and Running the Codes
-This repository is arranged such that every folder has its own topic and `CMakeLists.txt` file for easy compilation with [CMake](https://cmake.org/). The code can be compiled using GNU Fortran Compiler with this following commands.
+This repository is arranged such that every folder has its own topic and `CMakeLists.txt` file for easy compilation with [CMake](https://cmake.org/). To install CMake 3.15, please run this following commands
+```sh
+sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+sudo apt update
+sudo apt upgrade
+```
 
+The code then can be compiled using GNU Fortran Compiler with this following commands.
 ```sh
 sudo apt update 
 sudo apt upgrade -y
-sudo apt install -y build-essential cmake
+sudo apt install -y build-essential 
 cd <topic_folder>
 mkdir build; cd build
 cmake ..
