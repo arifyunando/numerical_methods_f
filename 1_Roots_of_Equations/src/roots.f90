@@ -10,9 +10,9 @@ program root
     !       3. Roots of polynomials
     !
     ! Record of revisions:
-    !   Date            Programmer                  Description of changes
-    !   ==========      ======================      ============================
-    !   YYYY/MM/DD      A. Y. Sunanhadikusuma       ...
+    !   Date             Programmer                   Description of changes
+    !   ==========       ======================       =================================
+    !   YYYY/MM/DD       A. Y. Sunanhadikusuma        ...
     !
     !
     use Bracketing
@@ -21,40 +21,39 @@ program root
     implicit none
 
     !--- variables dictionary
-    ! bracketing values
-    real, external  :: poly
-    real            :: u_bound = 0.0, l_bound = -3.0
-    real            :: tol = 1.0E-8
-    integer         :: max_iter = 1000
-    logical         :: verbose = .false.
-    real            :: found_root
+        ! bracketing arguments
+        real, external  :: polynomials                                      ! import function
+        real            :: u_bound = 0.0, l_bound = -3.0, tol = 1.0E-8      ! bracket parameters
+        integer         :: max_iter = 1000                                  ! maximum iteration
+        logical         :: verbose = .false.                                ! print out iteration
+        real            :: found_root                                       ! results
 
-    ! function parameters
-    integer         :: order
-    real, allocatable, dimension(:) :: coefs
+        ! function parameters
+        real, allocatable, dimension(:) :: coefs    ! polynomial coefficients
+        integer         :: order                    ! polynomial order
 
-    ! placeholders
-    integer :: i
+        ! placeholders
+        integer :: i
 
-    !--- processes
-    write(*, *) "enter the order of the polynomial function:"
-    read(*, *)  order
-    allocate (coefs(order))
-    write(*, *) "enter coefficients in decending order:"
-    do i = 1, order + 1
-        read(*, *) coefs(i)
-    end do
+    !--- process: call subroutines for each data input
+        write(*, *) "enter the order of the polynomial function:"
+        read(*, *)  order
+        allocate (coefs(order))
+        write(*, *) "enter coefficients in decending order:"
+        do i = 1, order + 1
+            read(*, *) coefs(i)
+        end do
 
-    call bisection(             &
-        poly, coefs, order,     &   ! function parameters
-        u_bound, l_bound,       &   ! bracketing boundaries
-        tol, max_iter, verbose, &   ! iteration options
-        found_root              &   ! return value
-    )
+        call bisection(                     &
+            polynomials, coefs, order,      &   ! function parameters
+            u_bound, l_bound,               &   ! bracketing boundaries
+            tol, max_iter, verbose,         &   ! iteration options
+            found_root                      &   ! return value
+        )
 end program root
 
 
-real function poly(x, coef, poly_order) result(rv)
+real function polynomials(x, coef, poly_order) result(rv)
     
     integer, intent(in) :: poly_order
     real, intent(in) :: x, coef(poly_order + 1)
@@ -63,6 +62,6 @@ real function poly(x, coef, poly_order) result(rv)
     rv = 0
     do i = 1, poly_order + 1
         rv = rv + coef(i)*x**(poly_order + 1 - i)
-    end do    
+    end do
 
-end function poly
+end function polynomials
