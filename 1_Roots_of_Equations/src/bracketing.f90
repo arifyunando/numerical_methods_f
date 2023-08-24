@@ -1,4 +1,25 @@
+! "Numerical Methods Fortran" is a study repository that contains implementations
+! of the numerical methods discussed in Chapra S. C. & Canale R. P. (2015). 
+! Numerical methods for engineers (7th ed.). McGraw-Hill Higher Education.
+! 
+! © 2023 Arif Y Sunanhadikusuma
+
+
 module Bracketing
+    !
+    ! Introduction:
+    !   The bracketing method, as the name suggest, is a method to look for a root
+    !   inside a closed domain. This implies a priori knowledge to the region in which
+    !   a root might exist. There are three methods implemented in the bracketing modules
+    !       1. Bisection
+    !       2. Regula Falsi / False Point
+    !       3. Modified Regula Falsi
+    !
+    ! Record of revisions:
+    !   Date             Programmer                   Description of changes
+    !   ==========       ======================       =================================
+    !   2023/08/24       A Y Sunanhadikusuma          original code
+    !
     implicit none
     
 contains
@@ -7,12 +28,18 @@ subroutine bisection(                                                       &
         func, coef, u_bound, l_bound, tol, max_iter, verbose, root          &
     )
     !
-    !
-    !
-    !
-    !
-    !
-    !
+    ! Introduction:
+    !   Bisection method is a method tha utilize binary search of the root within 
+    !   a domain. The idea is to evaluate compare the boundary evaluated values
+    !   to the middle evaluated values. If the product to one of the boundary is positive,
+    !   then the middle point can replace that boundary value. And thus, by iteration,
+    !   the domain will slowly converge to the actual root value. The iteration is stopped
+    !   if error rate reaches tolerance number or max number of iteration is reached. 
+    !   
+    ! NB:
+    !   1. errors are calculated in relative forms.
+    !   2. Early exit will be executed if it is indicated that none or multiple roots exist
+    !      in the checked domain.
     !
     !
     implicit none
@@ -65,7 +92,7 @@ subroutine bisection(                                                       &
         if (verbose) write(*, 210) 
         if (verbose) write(*,*) "results:", midpoint 
         
-    !--- formatting
+    !--- formatters
         200 format ('  ', "Iteration ", I5, ':', F9.4, '    error: ', F6.2, ' %')
         210 format (":-----------------------------------------------:")
 end subroutine bisection
@@ -74,14 +101,14 @@ subroutine regulaFalsi(                                                     &
         func, coef, u_bound, l_bound, tol, max_iter, verbose, root          &
     )
     !
-    ! Purpose:
+    ! Introduction:
     !   Regula Falsi / False Point method is a bracketing method 
     !   that utilize linear function between two boundary points 
     !   to find the interesecting root. This method is supposedly
     !   better than the bracketing method whose nature is "brute-force" 
     !   and relatively inefficient
     !
-    !   The equation to find the intersecting point 
+    !   The equation to find the intersecting point
     !   can be solved with this following equation.
     !   x_r = x_u - f(x_u)(x_l - x_u)/(f(x_l) - f(x_u))
     !
@@ -145,7 +172,7 @@ subroutine regulaFalsi(                                                     &
         if (verbose) write(*, 210) 
         if (verbose) write(*,*) "results:", intersect_point
 
-    !--- formatting
+    !--- formatters
         200 format ('  ', "Iteration ", I5, ':', F9.4, '    error: ', F6.2, ' %')
         210 format (":-----------------------------------------------:")
 end subroutine regulaFalsi
@@ -153,6 +180,20 @@ end subroutine regulaFalsi
 subroutine regulaFalsiModified(                                             &
         func, coef, u_bound, l_bound, tol, max_iter, verbose, root          &
     )
+    !
+    ! Introduction:
+    !   Regula Falsi / False Point method has a limitation if the evaluated function
+    !   is hardly have any changes in respect to x. (i.e., the gradient is small).
+    !   This conditions will make regula falsi reaches the root very slowly.   
+    !   To counter this, the algorithm can be modified such that for every iteration, 
+    !   the maximum number of domain which has the similar bounding value is twice.
+    !   if a domain is persistent for more than 2 iterations, then a new boundary value
+    !   is determine by dividing the output of the function at the boundary 
+    !   in question by two. 
+    !
+    !
+    implicit none
+
     !--- argument list
         interface
             function func(x, args)
@@ -225,7 +266,7 @@ subroutine regulaFalsiModified(                                             &
         if (verbose) write(*,*) "results:", intersect_point
 
 
-    !--- formatting
+    !--- formatters
         200 format ('  ', "Iteration ", I5, ':', F9.4, '    error: ', F6.2, ' %')
         210 format (":-----------------------------------------------:")
     

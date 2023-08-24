@@ -1,6 +1,10 @@
-! ###########################################################
-!                       Main Program
-! ###########################################################
+! "Numerical Methods Fortran" is a study repository that contains implementations
+! of the numerical methods discussed in Chapra S. C. & Canale R. P. (2015). 
+! Numerical methods for engineers (7th ed.). McGraw-Hill Higher Education.
+! 
+! © 2023 Arif Y Sunanhadikusuma
+
+
 program root
     !
     ! Purpose:
@@ -78,6 +82,7 @@ program root
         )
         if (.not. verbose) print*, found_root
 
+    !--- formatters
         300 format (' ', "Polynomial order :", I3)
         310 format (' ', "Coefficients     :", 3F5.1)
 end program root
