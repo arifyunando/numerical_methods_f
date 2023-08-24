@@ -1,3 +1,6 @@
+! ###########################################################
+!                       Main Program
+! ###########################################################
 program root
     !
     ! Purpose:
@@ -18,15 +21,15 @@ program root
     use Bracketing
     use OpenMethods
     use PolyRoots
+    use TestingFunctions
     implicit none
 
     !--- variables dictionary
         ! bracketing arguments
-        real, external  :: polynomials                                      ! import function
         real            :: u_bound = 0.0, l_bound = -3.0, tol = 1.0E-8      ! bracket parameters
         integer         :: max_iter = 1000                                  ! maximum iteration
-        logical         :: verbose = .false.                                ! print out iteration
         real            :: found_root                                       ! results
+        logical         :: verbose = .true.
 
         ! function parameters
         real, allocatable, dimension(:) :: coefs    ! polynomial coefficients
@@ -35,33 +38,48 @@ program root
         ! placeholders
         integer :: i
 
-    !--- process: call subroutines for each data input
-        write(*, *) "enter the order of the polynomial function:"
-        read(*, *)  order
-        allocate (coefs(order))
-        write(*, *) "enter coefficients in decending order:"
-        do i = 1, order + 1
-            read(*, *) coefs(i)
-        end do
+    !--- process option 1: input data directly
+        coefs = [1.0, 0.0, -4.0]
+    
+    !--- process option 2: input data from CLI
+        ! write(*, *) "enter the order of the polynomial function:"
+        ! read(*, *)  order
+        ! allocate (coefs(order))
+        ! write(*, *) "enter coefficients in decending order:"
+        ! do i = 1, order + 1
+        !     read(*, *) coefs(i)
+        ! end do
+    
+    !--- process: call subroutines for solving roots
+        print 300, size(coefs) - 1
+        print 310, coefs
 
         call bisection(                     &
-            polynomials, coefs, order,      &   ! function parameters
+            polynomialsExplicit, coefs,     &   ! function parameters
             u_bound, l_bound,               &   ! bracketing boundaries
             tol, max_iter, verbose,         &   ! iteration options
             found_root                      &   ! return value
         )
+        if (.not. verbose) print*, found_root
+        
+        call regulaFalsi(                   &
+            polynomialsImplicit, coefs,     &   ! function parameters
+            u_bound, l_bound,               &   ! bracketing boundaries
+            tol, max_iter, verbose,         &   ! iteration options
+            found_root                      &   ! return value
+        )
+        if (.not. verbose) print*, found_root
+
+        call regulaFalsiModified(                   &
+            polynomialsImplicit, coefs,     &   ! function parameters
+            u_bound, l_bound,               &   ! bracketing boundaries
+            tol, max_iter, verbose,         &   ! iteration options
+            found_root                      &   ! return value
+        )
+        if (.not. verbose) print*, found_root
+
+        300 format (' ', "Polynomial order :", I3)
+        310 format (' ', "Coefficients     :", 3F5.1)
 end program root
 
 
-real function polynomials(x, coef, poly_order) result(rv)
-    
-    integer, intent(in) :: poly_order
-    real, intent(in) :: x, coef(poly_order + 1)
-    integer :: i
-
-    rv = 0
-    do i = 1, poly_order + 1
-        rv = rv + coef(i)*x**(poly_order + 1 - i)
-    end do
-
-end function polynomials

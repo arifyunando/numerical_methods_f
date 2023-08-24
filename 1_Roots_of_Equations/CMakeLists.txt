@@ -23,6 +23,7 @@ set(lib_src
     ${PROJECT_SOURCE_DIR}/src/bracketing.f90
     ${PROJECT_SOURCE_DIR}/src/openmethod.f90
     ${PROJECT_SOURCE_DIR}/src/polyroot.f90
+    ${PROJECT_SOURCE_DIR}/src/testingfunctions.f90
 )
 set(main_src
     ${PROJECT_SOURCE_DIR}/src/roots.f90
