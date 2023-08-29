@@ -24,8 +24,8 @@ module Bracketing
     
 contains
 
-subroutine bisection(                                                       &
-        func, coef, u_bound, l_bound, tol, max_iter, verbose, root          &
+subroutine bisection(                                                        &
+        func, coef, u_bound, l_bound, tol, max_iter, roots, errors, err_code &
     )
     !
     ! Introduction:
@@ -41,15 +41,27 @@ subroutine bisection(                                                       &
     !   2. Early exit will be executed if it is indicated that none or multiple roots exist
     !      in the checked domain.
     !
+    ! Error Code:
+    !   [0] SUCCESS
+    !   [1] ERROR: none or multiple roots exist inside the bounded domain
+    !   [2] WARNING: tolerance not met, showing final iteration value
     !
     implicit none
 
     !--- arguments list
-        real, external      :: func
-        real, intent(in)    :: coef(:), u_bound, l_bound, tol
-        logical, intent(in) :: verbose
+        interface
+            function func(x, args)
+                real, intent(in) :: x                       
+                real, dimension(:), intent(in) :: args 
+                real :: func
+            end function
+        end interface
+
         integer, intent(in) :: max_iter
-        real, intent(out)   :: root
+        real, intent(in)    :: coef(:), u_bound, l_bound, tol
+        
+        real, allocatable, intent(out) :: roots(:), errors(:)
+        integer, intent(out) :: err_code
         
     !--- local variable list
         integer :: iter
@@ -57,48 +69,45 @@ subroutine bisection(                                                       &
         real    :: error, midpoint
 
     !--- process 1: initiatization
-        if (verbose) write(*,*) ""
-        if (verbose) write(*,*) "finding roots with 'bracketing method'..."
-        if (verbose) write(*, 210)
+        if (allocated(roots)) deallocate(roots)
+        if (allocated(errors)) deallocate(errors)
+        allocate(roots(max_iter), errors(max_iter))
+        err_code = 0
 
         error = 1
-        iter = 0
+        iter = 1
         curr_l = l_bound
         curr_u = u_bound
 
         ! check valid roots
-        if (func(u_bound, coef, size(coef)) * func(l_bound, coef, size(coef)) >= 0) then
-            print*, "ERROR: none or multiple roots exist inside the bounded domain"
-            if (verbose) write(*, 210) 
-            root = 0
+        if (func(u_bound, coef) * func(l_bound, coef) >= 0) then
+            err_code = 1
             return
         end if
 
     !--- process 2: iteration
         do while ( (error > tol) .and. (iter < max_iter) )
             midpoint = (curr_u + curr_l) / 2
-            if (func(midpoint, coef, size(coef)) * func(curr_l, coef, size(coef)) < 0) then
-                error = abs(abs(midpoint - curr_u)/midpoint)
+            if (func(midpoint, coef) * func(curr_l, coef) < 0) then
+                error = abs((midpoint - curr_u)/midpoint)
                 curr_u = midpoint
             else 
-                error = abs(abs(midpoint - curr_l)/midpoint)
+                error = abs((midpoint - curr_l)/midpoint)
                 curr_l = midpoint
             end if
+            roots(iter) = midpoint
+            errors(iter) = error
             iter = iter + 1
-            if (verbose) write(*,200) iter, midpoint, error*100
         end do
 
     !--- process 3: closure
-        if (verbose) write(*, 210) 
-        if (verbose) write(*,*) "results:", midpoint 
-        
-    !--- formatters
-        200 format ('  ', "Iteration ", I5, ':', F9.4, '    error: ', F6.2, ' %')
-        210 format (":-----------------------------------------------:")
+        if (error > tol .or. isnan(error)) err_code = 2
+        roots  = roots(:iter - 1)
+        errors = errors(:iter - 1)
 end subroutine bisection
 
-subroutine regulaFalsi(                                                     &
-        func, coef, u_bound, l_bound, tol, max_iter, verbose, root          &
+subroutine regulaFalsi(                                                      &
+        func, coef, u_bound, l_bound, tol, max_iter, roots, errors, err_code &
     )
     !
     ! Introduction:
@@ -118,15 +127,17 @@ subroutine regulaFalsi(                                                     &
     !--- argument list
         interface
             function func(x, args)
-                real, intent(in) :: x                       ! evaluation point
-                real, dimension(:), intent(in) :: args      ! function coefficients / parameters
+                real, intent(in) :: x                       
+                real, dimension(:), intent(in) :: args 
                 real :: func
             end function
         end interface
-        real, intent(in)    :: coef(:), u_bound, l_bound, tol
+
         integer, intent(in) :: max_iter
-        logical, intent(in) :: verbose
-        real, intent(out)   :: root
+        real, intent(in)    :: coef(:), u_bound, l_bound, tol
+        
+        real, allocatable, intent(out) :: roots(:), errors(:)
+        integer, intent(out) :: err_code
 
     !--- local variable list
         real :: intersect_point
@@ -135,20 +146,19 @@ subroutine regulaFalsi(                                                     &
         integer :: iter
 
     !--- process 1: initialization
-        if (verbose) write(*,*) ""
-        if (verbose) write(*,*) "finding roots with 'false point method'..."
-        if (verbose) write(*, 210)
+        if (allocated(roots)) deallocate(roots)
+        if (allocated(errors)) deallocate(errors)
+        allocate(roots(max_iter), errors(max_iter))
+        err_code = 0
 
         error = 1
-        iter = 0
+        iter = 1
         curr_l = l_bound
         curr_u = u_bound
 
         ! check valid roots
-        if (func(u_bound, coef) * func(l_bound, coef) > 0 ) then
-            print*, "ERROR: none or multiple roots exist inside the bounded domain"
-            if (verbose) write(*, 210) 
-            root = 0
+        if (func(u_bound, coef) * func(l_bound, coef) >= 0) then
+            err_code = 1
             return
         end if
 
@@ -164,21 +174,19 @@ subroutine regulaFalsi(                                                     &
                 error = abs(abs(intersect_point - curr_l)/intersect_point)
                 curr_l = intersect_point
             end if
+            roots(iter) = intersect_point
+            errors(iter) = error
             iter = iter + 1
-            if (verbose) write(*,200) iter, intersect_point, error*100
         end do
 
     !--- process 3: closure
-        if (verbose) write(*, 210) 
-        if (verbose) write(*,*) "results:", intersect_point
-
-    !--- formatters
-        200 format ('  ', "Iteration ", I5, ':', F9.4, '    error: ', F6.2, ' %')
-        210 format (":-----------------------------------------------:")
+        if (error > tol .or. isnan(error)) err_code = 2
+        roots  = roots(:iter - 1)
+        errors = errors(:iter - 1)
 end subroutine regulaFalsi
 
-subroutine regulaFalsiModified(                                             &
-        func, coef, u_bound, l_bound, tol, max_iter, verbose, root          &
+subroutine regulaFalsiModified(                                              &
+        func, coef, u_bound, l_bound, tol, max_iter, roots, errors, err_code &
     )
     !
     ! Introduction:
@@ -197,15 +205,17 @@ subroutine regulaFalsiModified(                                             &
     !--- argument list
         interface
             function func(x, args)
-                real, intent(in) :: x                       ! evaluation point
-                real, dimension(:), intent(in) :: args      ! function coefficients / parameters
+                real, intent(in) :: x                       
+                real, dimension(:), intent(in) :: args 
                 real :: func
             end function
         end interface
-        real, intent(in)    :: coef(:), u_bound, l_bound, tol
+
         integer, intent(in) :: max_iter
-        logical, intent(in) :: verbose
-        real, intent(out)   :: root
+        real, intent(in)    :: coef(:), u_bound, l_bound, tol
+
+        real, allocatable, intent(out) :: roots(:), errors(:)
+        integer, intent(out) :: err_code
 
     !--- local variable list
         real :: intersect_point
@@ -214,24 +224,23 @@ subroutine regulaFalsiModified(                                             &
         integer :: iter, counter_u, counter_l
 
     !--- process 1: initialization
-        if (verbose) write(*,*) ""
-        if (verbose) write(*,*) "finding roots with 'modified false point method'..."
-        if (verbose) write(*, 210)
+        if (allocated(roots)) deallocate(roots)
+        if (allocated(errors)) deallocate(errors)
+        allocate(roots(max_iter), errors(max_iter))
+        err_code = 0
 
         error = 1
-        iter = 0
+        iter = 1
         curr_l = l_bound
         curr_u = u_bound
         eval_l = func(l_bound, coef)
         eval_u = func(u_bound, coef)
 
         ! check valid roots
-        if (eval_u * eval_l > 0) then
-            print*, "ERROR: none or multiple roots exist inside the bounded domain"
-            if (verbose) write(*, 210) 
-            root = 0
+        if (func(u_bound, coef) * func(l_bound, coef) >= 0) then
+            err_code = 1
             return
-        end if       
+        end if
 
     !--- process 2: iteration
         do while( (error > tol) .and. (iter < max_iter) )
@@ -257,19 +266,15 @@ subroutine regulaFalsiModified(                                             &
                     eval_u = eval_u/2
                 end if
             end if
+            roots(iter) = intersect_point
+            errors(iter) = error
             iter = iter + 1
-            if (verbose) write(*,200) iter, intersect_point, error*100
         end do
 
     !--- process 3: closure
-        if (verbose) write(*, 210) 
-        if (verbose) write(*,*) "results:", intersect_point
-
-
-    !--- formatters
-        200 format ('  ', "Iteration ", I5, ':', F9.4, '    error: ', F6.2, ' %')
-        210 format (":-----------------------------------------------:")
-    
+        if (error > tol .or. isnan(error)) err_code = 2
+        roots  = roots(:iter - 1)
+        errors = errors(:iter - 1)
 end subroutine regulaFalsiModified
 
 end module Bracketing

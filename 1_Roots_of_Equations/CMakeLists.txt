@@ -16,14 +16,15 @@ SET(VERSION 0.0.0)
 # add the install targets and module files
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/run)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
-set(CMAKE_Fortran_FLAGS "-g")
+set(CMAKE_Fortran_FLAGS "-cpp -g")
 
 # set variables for files
 set(lib_src
     ${PROJECT_SOURCE_DIR}/src/bracketing.f90
     ${PROJECT_SOURCE_DIR}/src/openmethod.f90
     ${PROJECT_SOURCE_DIR}/src/polyroot.f90
-    ${PROJECT_SOURCE_DIR}/src/testingfunctions.f90
+    ${PROJECT_SOURCE_DIR}/src/nonlinearsystem.f90   
+    ${PROJECT_SOURCE_DIR}/src/utilities.f90
 )
 set(main_src
     ${PROJECT_SOURCE_DIR}/src/roots.f90
